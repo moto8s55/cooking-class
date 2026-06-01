@@ -172,17 +172,16 @@ function syncData() {
   const btn=document.getElementById('syncBtn'),dot=document.getElementById('statusDot'),st=document.getElementById('statusText');
   btn.classList.add('loading');dot.className='status-dot loading';st.textContent='データを取得中...';
   document.getElementById('loadingOverlay').classList.add('show');
-  google.script.run
-    .withSuccessHandler(function(result){
-      const json=JSON.parse(result);
+  fetch(GAS_URL+'?action=getAllData')
+    .then(r=>r.json())
+    .then(function(json){
       if(json.status==='ok'){allData=json.data||[];renderAll();dot.className='status-dot ok';const now=new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});st.textContent='最終同期: '+now+' — '+allData.length+'件取得';showToast('✅ '+allData.length+'件取得しました')}
       btn.classList.remove('loading');document.getElementById('loadingOverlay').classList.remove('show');
     })
-    .withFailureHandler(function(e){
+    .catch(function(e){
       dot.className='status-dot err';st.textContent='エラー: '+e.message;showToast('❌ '+e.message);
       btn.classList.remove('loading');document.getElementById('loadingOverlay').classList.remove('show');
-    })
-    .getAllData();
+    });
 }
 function renderAll(){renderDashboard();renderApplicants();renderDanger();renderRelocation();renderDecision()}
 function normDate(s){if(!s)return'';s=s.toString().trim();const m=s.match(/(\d+)月(\d+)日/);return m?m[1]+'/'+m[2]:s}
