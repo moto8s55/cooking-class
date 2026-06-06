@@ -898,6 +898,20 @@ function saveDates(dates) {
   syncDatesToGAS(dates);
 }
 
+async function loadDatesFromGAS() {
+  try {
+    const res = await fetch(GAS_URL + '?action=getDates', { mode: 'cors' });
+    const json = await res.json();
+    if (json.status === 'ok' && Array.isArray(json.dates) && json.dates.length > 0) {
+      localStorage.setItem(DATES_KEY, JSON.stringify(json.dates));
+      return json.dates;
+    }
+  } catch(e) {
+    console.warn('GASからの日程取得失敗、localStorageを使用:', e);
+  }
+  return getDates();
+}
+
 async function syncDatesToGAS(dates) {
   try {
     const res = await fetch(GAS_URL, {
@@ -1453,7 +1467,10 @@ function showToast(msg) {
 }
 
 // ===== 起動時 =====
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
+  await loadDatesFromGAS();
+  renderAll();
+  renderAdminPage();
   setTimeout(syncData, 500);
 });
 </script>
